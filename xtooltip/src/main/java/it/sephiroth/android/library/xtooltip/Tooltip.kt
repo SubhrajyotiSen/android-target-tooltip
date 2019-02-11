@@ -23,6 +23,7 @@ import androidx.annotation.StringRes
 import androidx.annotation.StyleRes
 import androidx.appcompat.view.ContextThemeWrapper
 import androidx.appcompat.widget.AppCompatTextView
+import androidx.core.text.HtmlCompat
 import androidx.core.view.setPadding
 import timber.log.Timber
 import java.lang.ref.WeakReference
@@ -235,9 +236,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
             mTextView.text = if (text is Spannable) {
                 text
             } else {
-                @Suppress("DEPRECATION")
-                Html.fromHtml(text as String)
-            }
+                HtmlCompat.fromHtml(text as String, HtmlCompat.FROM_HTML_MODE_COMPACT)            }
         }
     }
 
@@ -871,6 +870,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
             } ?: run {
                 this.defStyleRes = R.style.ToolTipLayoutDefaultStyle
             }
+            this.defStyleAttr = R.attr.ttlm_defaultStyle
             this.defStyleAttr = R.attr.ttlm_defaultStyle
             return this
         }
