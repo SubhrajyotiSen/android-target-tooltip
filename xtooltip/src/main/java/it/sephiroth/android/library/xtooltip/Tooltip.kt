@@ -52,6 +52,8 @@ class Tooltip private constructor(private val context: Context, builder: Builder
     var isShowing = false
         private set
 
+    private var touchEventStartTime: Long = 0
+
     private val mGravities = Gravity.values().filter { it != Gravity.CENTER }
     private var isVisible = false
     private val mSizeTolerance = context.resources.displayMetrics.density * 10
@@ -755,22 +757,29 @@ class Tooltip private constructor(private val context: Context, builder: Builder
         override fun onTouchEvent(event: MotionEvent): Boolean {
             if (!isShowing || !isVisible || !mActivated) return false
 
-            Timber.i("onTouchEvent: $event")
-            Timber.d("event position: ${event.x}, ${event.y}")
+            if (event.action == MotionEvent.ACTION_DOWN) {
+                touchEventStartTime = System.currentTimeMillis()
+            } else if (event.action == MotionEvent.ACTION_UP) {
+                if (System.currentTimeMillis() - touchEventStartTime < ViewConfiguration.getTapTimeout()) {
+                    Timber.i("onTouchEvent: $event")
+                    Timber.d("event position: ${event.x}, ${event.y}")
 
-            val r1 = Rect()
-            mTextView.getGlobalVisibleRect(r1)
-            val containsTouch = r1.contains(event.x.toInt(), event.y.toInt())
+                    val r1 = Rect()
+                    mTextView.getGlobalVisibleRect(r1)
+                    val containsTouch = r1.contains(event.x.toInt(), event.y.toInt())
 
-            if (mClosePolicy.anywhere()) {
-                hide()
-            } else if (mClosePolicy.inside() && containsTouch) {
-                hide()
-            } else if (mClosePolicy.outside() && !containsTouch) {
-                hide()
+                    if (mClosePolicy.anywhere()) {
+                        hide()
+                    } else if (mClosePolicy.inside() && containsTouch) {
+                        hide()
+                    } else if (mClosePolicy.outside() && !containsTouch) {
+                        hide()
+                    }
+
+                    return mClosePolicy.consume()
+                }
             }
-
-            return mClosePolicy.consume()
+            return false
         }
     }
 
